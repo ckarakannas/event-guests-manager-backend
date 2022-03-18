@@ -11,6 +11,8 @@ import {
   SerializeOptions,
   ClassSerializerInterceptor,
   UseInterceptors,
+  InternalServerErrorException,
+  Patch,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -18,6 +20,8 @@ import { LocalAuthGuard } from './guards/local-auth.guard';
 import { CurrentUser } from './current-user.decorator';
 import { UsersService } from '../users/users.service';
 import { CreateUserDto } from '../users/dto/create-user.dto';
+import { QueryFailedError } from 'typeorm';
+import { UpdateUserDto } from '../users/dto/update-user-dto';
 
 @Controller()
 @SerializeOptions({ strategy: 'excludeAll' })
@@ -47,35 +51,47 @@ export class AuthController {
     return { message: 'User deleted!' };
   }
 
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(ClassSerializerInterceptor)
+  @Patch('users/profile')
+  async updateProfile(
+    @CurrentUser() user: User,
+    @Body() updateUserDto: UpdateUserDto,
+  ): Promise<User | undefined> {
+    return await this.usersService.updateUser(user, updateUserDto).catch((error: any) => {
+      if (
+        error instanceof QueryFailedError &&
+        error.message.includes('duplicate')
+      ) {
+        throw new BadRequestException('Username or email is already in use!');
+      } else {
+        throw new InternalServerErrorException(
+          'An internal server error has occured!',
+        );
+      }
+    });
+  }
+
   @UseInterceptors(ClassSerializerInterceptor)
   @Post('auth/register')
   async create(@Body() createUserDto: CreateUserDto) {
-    const user = new User();
-
     if (createUserDto.password !== createUserDto.retypedPassword) {
       throw new BadRequestException('Passwords are not identical!');
     }
 
-    const existingUser = await this.usersService.findOne(
-      createUserDto.username,
-      createUserDto.email,
-    );
-
-    if (existingUser) {
-      throw new BadRequestException('Username or email is already in use!');
-    }
-
-    user.username = createUserDto.username;
-    user.password = await this.authService.hashPassword(createUserDto.password);
-    user.email = createUserDto.email;
-    user.firstName = createUserDto.firstName;
-    user.lastName = createUserDto.lastName;
-
-    const saved_user = await this.usersService.saveUser(user);
-    const access_token = await this.authService.login(saved_user);
-    const authDto = new AuthRegisterDto(saved_user);
-    authDto.access_token = access_token['access_token'];
-
-    return await authDto;
+    return await this.authService
+      .register(createUserDto)
+      .catch((error: any) => {
+        if (
+          error instanceof QueryFailedError &&
+          error.message.includes('duplicate')
+        ) {
+          throw new BadRequestException('Username or email is already in use!');
+        } else {
+          throw new InternalServerErrorException(
+            'An internal server error has occured!',
+          );
+        }
+      });
   }
 }
