@@ -18,7 +18,7 @@ export class Event {
   @Expose()
   id: number;
 
-  @Column({ unique: true })
+  @Column()
   @Expose()
   name: string;
 
