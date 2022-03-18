@@ -40,9 +40,9 @@ export class Event {
   @Expose()
   guests: Guest[];
 
-  // @ManyToOne(() => User, (user) => user.organized)
-  // @Expose()
-  // organizer: User;
+  @ManyToOne(() => User, (user) => user.organizedEvents)
+  @Expose()
+  organizer: User;
 
   @Column({ nullable: true })
   organizerId: number;
