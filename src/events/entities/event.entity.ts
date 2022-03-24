@@ -7,7 +7,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Guest } from './guest.entity';
+import { Guest } from '../../guests/entities/guest.entity';
 
 @Entity()
 export class Event {
@@ -52,11 +52,11 @@ export class Event {
   organizerId: string;
 
   @Expose()
-  attendeeCount?: number;
+  guestsCount?: number;
   @Expose()
-  attendeeRejected?: number;
+  guestsRejected?: number;
   @Expose()
-  attendeeMaybe?: number;
+  guestsMaybe?: number;
   @Expose()
-  attendeeAccepted?: number;
+  guestsAccepted?: number;
 }
