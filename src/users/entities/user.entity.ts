@@ -15,9 +15,9 @@ export class User {
   constructor(partial: Partial<User>) {
     Object.assign(this, partial);
   }
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn('uuid')
   @Expose()
-  id: number;
+  id: string;
 
   @Column({ unique: true })
   @Expose()

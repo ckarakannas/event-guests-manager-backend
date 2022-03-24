@@ -26,7 +26,7 @@ export class EventsService {
     );
   }
 
-  async getEvents(organizerId: number): Promise<Event[] | undefined> {
+  async getEvents(organizerId: string): Promise<Event[] | undefined> {
     return await this.eventsRepository.find({
       where: [{ organizerId: organizerId }],
       relations: ['guests', 'organizer'],
@@ -34,7 +34,7 @@ export class EventsService {
     });
   }
 
-  async findOne(id: number, organizerId: number): Promise<Event> | undefined {
+  async findOne(id: string, organizerId: string): Promise<Event> | undefined {
     return await this.eventsRepository.findOne({
       where: [{ id: id, organizerId: organizerId }],
       relations: ['guests', 'organizer'],
@@ -43,7 +43,7 @@ export class EventsService {
 
   async findByName(
     eventName: string,
-    organizerId: number,
+    organizerId: string,
   ): Promise<Event> | undefined {
     return await this.eventsRepository.findOne({
       where: [{ name: eventName, organizerId: organizerId }],
@@ -63,7 +63,7 @@ export class EventsService {
     );
   }
 
-  async deleteEvent(id: number) {
+  async deleteEvent(id: string) {
     return await this.eventsRepository.delete({
       id: id,
     });
