@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { User } from '../users/entities/user.entity';
 import { Repository } from 'typeorm';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
@@ -12,42 +13,57 @@ export class EventsService {
     @InjectRepository(Event)
     private eventsRepository: Repository<Event>,
   ) {}
-  async create(createEventDto: CreateEventDto): Promise<Event> {
+  async create(
+    createEventDto: CreateEventDto,
+    user: User,
+  ): Promise<Event | undefined> {
     return await this.eventsRepository.save(
       new Event({
         ...createEventDto,
-        when: new Date(),
+        organizer: user,
+        when: new Date(createEventDto.when),
       }),
     );
   }
 
-  async getEvents() {
+  async getEvents(organizerId: string): Promise<Event[] | undefined> {
     return await this.eventsRepository.find({
-      select: ['name', 'id'],
+      where: [{ organizerId: organizerId }],
+      relations: ['guests', 'organizer'],
+      // select: ['name', 'id'],
     });
   }
 
-  async findOne(id: number): Promise<Event> | undefined {
-    return await this.eventsRepository.findOne(id, {
-      relations: ['guests'],
+  async findOne(id: string, organizerId: string): Promise<Event> | undefined {
+    return await this.eventsRepository.findOne({
+      where: [{ id: id, organizerId: organizerId }],
+      relations: ['guests', 'organizer'],
     });
   }
 
-  async findByName(name: string) {
-    return await `This action returns a #${name} event`;
+  async findByName(
+    eventName: string,
+    organizerId: string,
+  ): Promise<Event> | undefined {
+    return await this.eventsRepository.findOne({
+      where: [{ name: eventName, organizerId: organizerId }],
+    });
   }
 
-  async updateEvent(event: Event, input: UpdateEventDto): Promise<Event> {
+  async updateEvent(
+    event: Event,
+    updateEventDto: UpdateEventDto,
+  ): Promise<Event> {
     return await this.eventsRepository.save(
       new Event({
         ...event,
-        ...input,
-        when: input.when ? new Date(input.when) : event.when,
+        ...updateEventDto,
+        when: updateEventDto.when ? new Date(updateEventDto.when) : event.when,
       }),
     );
   }
 
-  async deleteEvent(id: number) {
+  async deleteEvent(id: string) {
     return await this.eventsRepository.delete({
       id: id,
     });

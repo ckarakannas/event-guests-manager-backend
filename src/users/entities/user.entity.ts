@@ -12,9 +12,12 @@ import { Profile } from './profile.entity';
 
 @Entity()
 export class User {
-  @PrimaryGeneratedColumn()
+  constructor(partial: Partial<User>) {
+    Object.assign(this, partial);
+  }
+  @PrimaryGeneratedColumn('uuid')
   @Expose()
-  id: number;
+  id: string;
 
   @Column({ unique: true })
   @Expose()

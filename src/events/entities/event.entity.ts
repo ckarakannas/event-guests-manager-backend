@@ -14,13 +14,17 @@ export class Event {
   constructor(partialEvent?: Partial<Event>) {
     Object.assign(this, partialEvent);
   }
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn('uuid')
   @Expose()
-  id: number;
+  id: string;
 
-  @Column({ unique: true })
+  @Column()
   @Expose()
   name: string;
+
+  @Column({ nullable: true })
+  @Expose()
+  type: string;
 
   @Column()
   @Expose()
@@ -45,7 +49,7 @@ export class Event {
   organizer: User;
 
   @Column({ nullable: true })
-  organizerId: number;
+  organizerId: string;
 
   @Expose()
   attendeeCount?: number;

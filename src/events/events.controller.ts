@@ -8,82 +8,104 @@ import {
   Param,
   Delete,
   NotFoundException,
-  ForbiddenException,
   BadRequestException,
-  InternalServerErrorException,
+  UseGuards,
+  SerializeOptions,
+  ClassSerializerInterceptor,
+  UseInterceptors,
+  HttpCode,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { EventsService } from './events.service';
-import { Event } from './entities/event.entity';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
-import { QueryFailedError } from 'typeorm';
+import { CurrentUser } from '../auth/current-user.decorator';
+import { User } from '../users/entities/user.entity';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
+@SerializeOptions({ strategy: 'excludeAll' })
 @Controller('events')
 export class EventsController {
   private readonly logger = new Logger(EventsController.name);
   constructor(private readonly eventsService: EventsService) {}
 
   @Post()
-  async create(@Body() createEventDto: CreateEventDto) {
-    return await this.eventsService
-      .create(createEventDto)
-      .catch((error: any) => {
-        if (
-          error instanceof QueryFailedError &&
-          error.message.includes('duplicate')
-        ) {
-          throw new BadRequestException('Event already exists!');
-        } else {
-          throw new InternalServerErrorException();
-        }
-      });
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(ClassSerializerInterceptor)
+  async create(
+    @Body() createEventDto: CreateEventDto,
+    @CurrentUser() user: User,
+  ) {
+    const event = await this.eventsService.findByName(
+      createEventDto.name,
+      user.id,
+    );
+
+    if (event) {
+      throw new BadRequestException(
+        `Event ${createEventDto.name} already exists!`,
+      );
+    }
+
+    return await this.eventsService.create(createEventDto, user);
   }
 
   @Get()
-  async getEvents() {
-    return await this.eventsService.getEvents();
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(ClassSerializerInterceptor)
+  async getEvents(@CurrentUser() user: User) {
+    return await this.eventsService.getEvents(user.id);
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
-    return await this.eventsService.findOne(+id);
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(ClassSerializerInterceptor)
+  async findOne(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @CurrentUser() user: User,
+  ) {
+    const event = await this.eventsService.findOne(id, user.id);
+    if (!event) {
+      throw new NotFoundException(
+        'Event not found or your are not authorized to view this event!',
+      );
+    }
+    return event;
   }
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(ClassSerializerInterceptor)
   async update(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateEventDto: UpdateEventDto,
+    @CurrentUser() user: User,
   ) {
-    const event = await this.eventsService.findOne(+id);
+    const event = await this.eventsService.findOne(id, user.id);
 
     if (!event) {
-      throw new NotFoundException(null, 'Operation failed. Event not found!');
+      throw new NotFoundException(
+        'Operation failed. Event not found or you are not authorized to change this event!',
+      );
     }
 
-    // if (event.organizerId !== user.id) {
-    //   throw new ForbiddenException(
-    //     null, `You are not authorized to change this event`
-    //   );
-    // }
-
-    return await this.eventsService
-      .updateEvent(event, updateEventDto)
-      .catch((error: any) => {
-        if (
-          error instanceof QueryFailedError &&
-          error.message.includes('duplicate')
-        ) {
-          throw new BadRequestException(
-            'Event name already exists! Choose a different name.',
-          );
-        } else {
-          throw new InternalServerErrorException();
-        }
-      });
+    return await this.eventsService.updateEvent(event, updateEventDto);
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string) {
-    return await this.eventsService.deleteEvent(+id);
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(204)
+  async remove(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @CurrentUser() user: User,
+  ) {
+    const event = await this.eventsService.findOne(id, user.id);
+
+    if (!event) {
+      throw new NotFoundException(
+        'Operation failed. Event not found or you are not authorized to change this event!',
+      );
+    }
+    return await this.eventsService.deleteEvent(id);
   }
 }
