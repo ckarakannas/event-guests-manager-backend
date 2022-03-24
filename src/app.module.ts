@@ -6,6 +6,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { GuestsModule } from './guests/guests.module';
 import ormConfig from './config/orm.config';
 import ormConfigProd from './config/orm.config.prod';
 import jwtConfig from './config/jwt.config';
@@ -25,6 +26,7 @@ import jwtConfig from './config/jwt.config';
     EventsModule,
     AuthModule,
     UsersModule,
+    GuestsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
