@@ -1,5 +1,6 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Event } from '../../events/entities/event.entity';
+import { GuestRSVPEnum } from './guest-rsvp.enum';
 
 @Entity()
 export class Guest {
@@ -14,4 +15,7 @@ export class Guest {
     onDelete: 'CASCADE',
   })
   event: Event;
+
+  @Column('enum', { enum: GuestRSVPEnum })
+  rsvpStatus: GuestRSVPEnum;
 }

@@ -53,10 +53,13 @@ export class Event {
 
   @Expose()
   guestsCount?: number;
-  @Expose()
-  guestsRejected?: number;
-  @Expose()
-  guestsMaybe?: number;
+
   @Expose()
   guestsAccepted?: number;
+
+  @Expose()
+  guestsRejected?: number;
+
+  @Expose()
+  guestsPending?: number;
 }

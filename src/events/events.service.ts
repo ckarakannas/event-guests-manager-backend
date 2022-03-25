@@ -1,10 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../users/entities/user.entity';
-import { Repository } from 'typeorm';
+import { Repository, SelectQueryBuilder } from 'typeorm';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { Event } from './entities/event.entity';
+import { GuestRSVPEnum } from '../guests/entities/guest-rsvp.enum';
 
 @Injectable()
 export class EventsService {
@@ -13,6 +14,42 @@ export class EventsService {
     @InjectRepository(Event)
     private eventsRepository: Repository<Event>,
   ) {}
+
+  private getEventsBaseQuery(): SelectQueryBuilder<Event> {
+    return this.eventsRepository
+      .createQueryBuilder('e')
+      .orderBy('e.when', 'DESC');
+  }
+
+  private getEventWithGuestCountQuery(): SelectQueryBuilder<Event> {
+    return this.getEventsBaseQuery()
+      .loadRelationCountAndMap('e.guestsCount', 'e.guests')
+      .loadRelationCountAndMap('e.guestsAccepted', 'e.guests', 'guest', (qb) =>
+        qb.where('guest.rsvpStatus = :answer', {
+          answer: GuestRSVPEnum.Accepted,
+        }),
+      )
+      .loadRelationCountAndMap('e.guestsPending', 'e.guests', 'guest', (qb) =>
+        qb.where('guest.rsvpStatus = :answer', {
+          answer: GuestRSVPEnum.Pending,
+        }),
+      )
+      .loadRelationCountAndMap('e.guestRejected', 'e.guests', 'guest', (qb) =>
+        qb.where('guest.rsvpStatus = :answer', {
+          answer: GuestRSVPEnum.Rejected,
+        }),
+      );
+  }
+
+  async getEvent(id: string, userId: string): Promise<Event | undefined> {
+    const query = this.getEventWithGuestCountQuery().andWhere(
+      'e.id = :id AND e.organizerId = :userId',
+      { id, userId },
+    );
+    this.logger.debug(query.getSql());
+    return await query.getOne();
+  }
+
   async create(
     createEventDto: CreateEventDto,
     user: User,

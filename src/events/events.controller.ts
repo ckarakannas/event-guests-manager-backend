@@ -64,7 +64,7 @@ export class EventsController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @CurrentUser() user: User,
   ) {
-    const event = await this.eventsService.findOne(id, user.id);
+    const event = await this.eventsService.getEvent(id, user.id);
     if (!event) {
       throw new NotFoundException(
         'Event not found or your are not authorized to view this event!',
