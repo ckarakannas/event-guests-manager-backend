@@ -115,13 +115,12 @@ export class EventsController {
     @Param('id', new ParseUUIDPipe()) id: string,
     @CurrentUser() user: User,
   ) {
-    const event = await this.eventsService.findOne(id, user.id);
+    const result = await this.eventsService.deleteEventWithQB(id, user.id);
 
-    if (!event) {
+    if (result?.affected !== 1) {
       throw new NotFoundException(
         'Operation failed. Event not found or you are not authorized to change this event!',
       );
     }
-    return await this.eventsService.deleteEvent(id);
   }
 }
