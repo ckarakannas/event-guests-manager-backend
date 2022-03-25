@@ -4,8 +4,9 @@ import { User } from '../users/entities/user.entity';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
-import { Event } from './entities/event.entity';
+import { Event, PaginatedEvents } from './entities/event.entity';
 import { GuestRSVPEnum } from '../guests/entities/guest-rsvp.enum';
+import { paginate, PaginateOptions } from '../pagination/paginator';
 
 @Injectable()
 export class EventsService {
@@ -15,14 +16,17 @@ export class EventsService {
     private eventsRepository: Repository<Event>,
   ) {}
 
-  private getEventsBaseQuery(): SelectQueryBuilder<Event> {
+  private getEventsBaseQuery(userId: string): SelectQueryBuilder<Event> {
     return this.eventsRepository
       .createQueryBuilder('e')
+      .where('e.organizerId = :userId', { userId })
       .orderBy('e.when', 'DESC');
   }
 
-  private getEventWithGuestCountQuery(): SelectQueryBuilder<Event> {
-    return this.getEventsBaseQuery()
+  private getEventWithGuestCountQuery(
+    userId: string,
+  ): SelectQueryBuilder<Event> {
+    return this.getEventsBaseQuery(userId)
       .loadRelationCountAndMap('e.guestsCount', 'e.guests')
       .loadRelationCountAndMap('e.guestsAccepted', 'e.guests', 'guest', (qb) =>
         qb.where('guest.rsvpStatus = :answer', {
@@ -41,10 +45,20 @@ export class EventsService {
       );
   }
 
+  public async getEventsWithAttendeeCountPaginated(
+    userId: string,
+    paginateOptions: PaginateOptions,
+  ): Promise<PaginatedEvents> {
+    return await paginate(
+      this.getEventWithGuestCountQuery(userId),
+      paginateOptions,
+    );
+  }
+
   async getEvent(id: string, userId: string): Promise<Event | undefined> {
-    const query = this.getEventWithGuestCountQuery().andWhere(
-      'e.id = :id AND e.organizerId = :userId',
-      { id, userId },
+    const query = this.getEventWithGuestCountQuery(userId).andWhere(
+      'e.id = :id',
+      { id },
     );
     this.logger.debug(query.getSql());
     return await query.getOne();

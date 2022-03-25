@@ -15,6 +15,9 @@ import {
   UseInterceptors,
   HttpCode,
   ParseUUIDPipe,
+  ValidationPipe,
+  UsePipes,
+  Query,
 } from '@nestjs/common';
 import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
@@ -22,6 +25,8 @@ import { UpdateEventDto } from './dto/update-event.dto';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { User } from '../users/entities/user.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { PaginationFilter } from '../pagination/dto/pagination.dto';
+import { ParsePaginationFilterPipe } from 'src/pagination/dto/parse-pagination.pipe';
 
 @SerializeOptions({ strategy: 'excludeAll' })
 @Controller('events')
@@ -51,10 +56,21 @@ export class EventsController {
   }
 
   @Get()
+  @UsePipes(new ValidationPipe({ transform: true }))
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(ClassSerializerInterceptor)
-  async getEvents(@CurrentUser() user: User) {
-    return await this.eventsService.getEvents(user.id);
+  async getEvents(
+    @Query(new ParsePaginationFilterPipe()) filter: PaginationFilter,
+    @CurrentUser() user: User,
+  ) {
+    return await this.eventsService.getEventsWithAttendeeCountPaginated(
+      user.id,
+      {
+        total: true,
+        currentPage: filter.page,
+        limit: filter.limit,
+      },
+    );
   }
 
   @Get(':id')
