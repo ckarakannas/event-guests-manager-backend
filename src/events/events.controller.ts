@@ -9,7 +9,6 @@ import {
   Delete,
   NotFoundException,
   BadRequestException,
-  UseGuards,
   SerializeOptions,
   ClassSerializerInterceptor,
   UseInterceptors,
@@ -24,7 +23,6 @@ import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { User } from '../users/entities/user.entity';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PaginationFilter } from '../pagination/dto/pagination.dto';
 import { ParsePaginationFilterPipe } from '../pagination/dto/parse-pagination.pipe';
 
@@ -35,7 +33,6 @@ export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard)
   @UseInterceptors(ClassSerializerInterceptor)
   async create(
     @Body() createEventDto: CreateEventDto,
@@ -57,7 +54,6 @@ export class EventsController {
 
   @Get()
   @UsePipes(new ValidationPipe({ transform: true }))
-  @UseGuards(JwtAuthGuard)
   @UseInterceptors(ClassSerializerInterceptor)
   async getEvents(
     @Query(new ParsePaginationFilterPipe()) filter: PaginationFilter,
@@ -74,7 +70,6 @@ export class EventsController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
   @UseInterceptors(ClassSerializerInterceptor)
   async findOne(
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -90,7 +85,6 @@ export class EventsController {
   }
 
   @Patch(':id')
-  @UseGuards(JwtAuthGuard)
   @UseInterceptors(ClassSerializerInterceptor)
   async update(
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -109,7 +103,6 @@ export class EventsController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
   @HttpCode(204)
   async remove(
     @Param('id', new ParseUUIDPipe()) id: string,

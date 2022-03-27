@@ -17,10 +17,7 @@ export class ParsePaginationFilterPipe
         'Page query param needs to be a positive integer.',
       );
     }
-    console.log(page);
-
     const limit = parseInt(data['limit'], 10);
-    console.log(limit);
 
     if (isNaN(limit) || limit <= 0) {
       throw new BadRequestException(
