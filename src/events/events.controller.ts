@@ -26,7 +26,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import { User } from '../users/entities/user.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PaginationFilter } from '../pagination/dto/pagination.dto';
-import { ParsePaginationFilterPipe } from 'src/pagination/dto/parse-pagination.pipe';
+import { ParsePaginationFilterPipe } from '../pagination/dto/parse-pagination.pipe';
 
 @SerializeOptions({ strategy: 'excludeAll' })
 @Controller('events')
