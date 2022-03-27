@@ -28,6 +28,7 @@
     "@nestjs/mapped-types": "*",
     "@nestjs/passport": "^8.2.1",
     "@nestjs/platform-express": "^8.0.0",
+    "@nestjs/throttler": "^2.0.1",
     "@nestjs/typeorm": "^8.0.2",
     "bcrypt": "^5.0.1",
     "class-transformer": "^0.5.1",
