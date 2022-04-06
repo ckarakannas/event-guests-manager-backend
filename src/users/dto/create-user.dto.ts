@@ -1,16 +1,29 @@
-import { IsEmail, Length } from "class-validator";
+import { IsByteLength, IsEmail, IsString, Length } from 'class-validator';
 
 export class CreateUserDto {
-  @Length(5)
+  @IsString()
+  @Length(5, 20)
   username: string;
-  @Length(8)
+
+  @IsString()
+  @Length(8, 32)
+  @IsByteLength(1, 72)
   password: string;
-  @Length(8)
+
+  @IsString()
+  @Length(8, 32)
+  @IsByteLength(1, 72)
   retypedPassword: string;
-  @Length(2)
+
+  @IsString()
+  @Length(2, 100)
   firstName: string;
-  @Length(2)
+
+  @IsString()
+  @Length(2, 100)
   lastName: string;
+
   @IsEmail()
+  @Length(2, 320)
   email: string;
 }

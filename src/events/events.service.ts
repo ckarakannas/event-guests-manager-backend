@@ -60,18 +60,17 @@ export class EventsService {
       'e.id = :id',
       { id },
     );
-    this.logger.debug(query.getSql());
     return await query.getOne();
   }
 
   async create(
     createEventDto: CreateEventDto,
-    user: User,
+    userId: string,
   ): Promise<Event | undefined> {
     return await this.eventsRepository.save(
       new Event({
         ...createEventDto,
-        organizer: user,
+        organizerId: userId,
         when: new Date(createEventDto.when),
       }),
     );

@@ -46,4 +46,7 @@ export class User {
   @OneToMany(() => Event, (event) => event.organizer)
   @Expose()
   organizedEvents: Event[];
+
+  @Column({ nullable: true })
+  refreshToken: string;
 }

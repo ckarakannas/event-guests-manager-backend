@@ -17,14 +17,15 @@ import {
   ValidationPipe,
   UsePipes,
   Query,
+  HttpStatus,
 } from '@nestjs/common';
 import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
-import { User } from '../users/entities/user.entity';
 import { PaginationFilter } from '../pagination/dto/pagination.dto';
 import { ParsePaginationFilterPipe } from '../pagination/dto/parse-pagination.pipe';
+import { CurrentUserId } from '../auth/decorators';
 
 @SerializeOptions({ strategy: 'excludeAll' })
 @Controller('events')
@@ -36,11 +37,11 @@ export class EventsController {
   @UseInterceptors(ClassSerializerInterceptor)
   async create(
     @Body() createEventDto: CreateEventDto,
-    @CurrentUser() user: User,
+    @CurrentUserId() userId: string,
   ) {
     const event = await this.eventsService.findByName(
       createEventDto.name,
-      user.id,
+      userId,
     );
 
     if (event) {
@@ -48,19 +49,17 @@ export class EventsController {
         `Event ${createEventDto.name} already exists!`,
       );
     }
-
-    return await this.eventsService.create(createEventDto, user);
+    return await this.eventsService.create(createEventDto, userId);
   }
 
   @Get()
-  @UsePipes(new ValidationPipe({ transform: true }))
   @UseInterceptors(ClassSerializerInterceptor)
   async getEvents(
     @Query(new ParsePaginationFilterPipe()) filter: PaginationFilter,
-    @CurrentUser() user: User,
+    @CurrentUserId() userId: string,
   ) {
     return await this.eventsService.getEventsWithAttendeeCountPaginated(
-      user.id,
+      userId,
       {
         total: true,
         currentPage: filter.page,
@@ -73,9 +72,9 @@ export class EventsController {
   @UseInterceptors(ClassSerializerInterceptor)
   async findOne(
     @Param('id', new ParseUUIDPipe()) id: string,
-    @CurrentUser() user: User,
+    @CurrentUserId() userId: string,
   ) {
-    const event = await this.eventsService.getEvent(id, user.id);
+    const event = await this.eventsService.getEvent(id, userId);
     if (!event) {
       throw new NotFoundException(
         'Event not found or your are not authorized to view this event!',
@@ -89,9 +88,9 @@ export class EventsController {
   async update(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateEventDto: UpdateEventDto,
-    @CurrentUser() user: User,
+    @CurrentUserId() userId: string,
   ) {
-    const event = await this.eventsService.findOne(id, user.id);
+    const event = await this.eventsService.findOne(id, userId);
 
     if (!event) {
       throw new NotFoundException(
@@ -103,12 +102,12 @@ export class EventsController {
   }
 
   @Delete(':id')
-  @HttpCode(204)
+  @HttpCode(HttpStatus.NO_CONTENT)
   async remove(
     @Param('id', new ParseUUIDPipe()) id: string,
-    @CurrentUser() user: User,
+    @CurrentUserId() userId: string,
   ) {
-    const result = await this.eventsService.deleteEventWithQB(id, user.id);
+    const result = await this.eventsService.deleteEventWithQB(id, userId);
 
     if (result?.affected !== 1) {
       throw new NotFoundException(

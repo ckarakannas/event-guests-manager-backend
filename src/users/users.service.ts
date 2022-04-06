@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DeleteResult, Repository, UpdateQueryBuilder, UpdateResult } from 'typeorm';
 import { UpdateUserDto } from './dto/update-user-dto';
 import { User } from './entities/user.entity';
+import { UserWhereConditions } from './types';
 
 @Injectable()
 export class UsersService {
@@ -10,6 +11,17 @@ export class UsersService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
   ) {}
+
+  private updateUserBaseQuery(
+    userId: string,
+    dto: UpdateUserDto,
+  ): UpdateQueryBuilder<User> {
+    return this.userRepository
+      .createQueryBuilder()
+      .update(User)
+      .set({ ...dto })
+      .where('id = :userId', { userId });
+  }
 
   async findByUsername(username: string): Promise<User | undefined> {
     return await this.userRepository.findOne({ where: { username } });
@@ -29,8 +41,8 @@ export class UsersService {
     return await this.userRepository.save(user);
   }
 
-  async deleteUser(user: User): Promise<User | undefined> {
-    return await this.userRepository.remove(user);
+  async deleteUser(userId: string): Promise<DeleteResult> {
+    return await this.userRepository.delete(userId);
   }
 
   async updateUser(
@@ -43,5 +55,20 @@ export class UsersService {
         ...updateUserDto,
       }),
     );
+  }
+
+  async updateUserWithQB(
+    userId: string,
+    dto: UpdateUserDto,
+    whereConditions?: UserWhereConditions,
+  ): Promise<UpdateResult> {
+    const qb = this.updateUserBaseQuery(userId, dto);
+    
+    if (whereConditions && whereConditions.length > 0) {
+      whereConditions.forEach((c) =>
+        qb.andWhere(`${c.property} ${c.condition}`),
+      );
+    }
+    return await qb.execute();
   }
 }
