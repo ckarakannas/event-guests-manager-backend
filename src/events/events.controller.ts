@@ -14,15 +14,12 @@ import {
   UseInterceptors,
   HttpCode,
   ParseUUIDPipe,
-  ValidationPipe,
-  UsePipes,
   Query,
   HttpStatus,
 } from '@nestjs/common';
 import { EventsService } from './events.service';
 import { CreateEventDto } from './dto/create-event.dto';
 import { UpdateEventDto } from './dto/update-event.dto';
-import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { PaginationFilter } from '../pagination/dto/pagination.dto';
 import { ParsePaginationFilterPipe } from '../pagination/dto/parse-pagination.pipe';
 import { CurrentUserId } from '../auth/decorators';
@@ -97,7 +94,6 @@ export class EventsController {
         'Operation failed. Event not found or you are not authorized to change this event!',
       );
     }
-
     return await this.eventsService.updateEvent(event, updateEventDto);
   }
 
