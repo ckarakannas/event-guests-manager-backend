@@ -31,6 +31,10 @@ import { Tokens } from './types';
 import { UserIdentifiers } from './interfaces/user-identifiers.interface';
 import { CurrentUserId } from './decorators';
 import { JwtRefreshGuard } from './guards/jwt-auth-refresh.guard';
+import { JwtGuestsAuthGuard } from './guards/jwt-guests-auth.guard';
+import { GuestsService } from '../guests/guests.service';
+import { CurrentGuest } from './decorators/current-guest.decorator';
+import { Guest } from '../guests/entities/guest.entity';
 
 @Controller()
 @SerializeOptions({ strategy: 'excludeAll' })
@@ -38,6 +42,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly usersService: UsersService,
+    private readonly guestsService: GuestsService,
   ) {}
 
   @Public()
@@ -143,5 +148,19 @@ export class AuthController {
           );
         }
       });
+  }
+
+  @Public()
+  @Post('auth/guest/magiclink')
+  async getMagicLinkForGuest(@Body() dto: any) {
+    return { magic_link: await this.authService.generateGuestMagicLink(dto) };
+  }
+
+  @Public()
+  @UseGuards(JwtGuestsAuthGuard)
+  @UseInterceptors(ClassSerializerInterceptor)
+  @Post('auth/guest/verify')
+  async verifyMagicLink(@CurrentGuest() guest: Guest) {
+    return guest ?? null;
   }
 }

@@ -5,7 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { User } from '../users/entities/user.entity';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { AuthRegister } from './classes/auth-register';
-import { JwtPayload, Tokens } from './types';
+import { GuestToken, JwtPayload, Tokens } from './types';
 import { ConfigService } from '@nestjs/config';
 import * as argon2 from 'argon2';
 import { UserIdentifiers } from './interfaces/user-identifiers.interface';
@@ -65,9 +65,13 @@ export class AuthService {
     const tokens = await this.getTokens(savedUser.id, savedUser.username);
     await this.updateUserRefreshTokenHash(savedUser.id, tokens.refresh_token);
 
-    const authRegister = new AuthRegister({...savedUser, ...tokens})
+    const authRegister = new AuthRegister({ ...savedUser, ...tokens });
     return authRegister;
+  }
 
+  async generateGuestMagicLink(dto: any): Promise<String> {
+    const token = await this.getGuestToken(dto.guestId, dto.eventId);
+    return `/magic/rsvp?token=${token.access_token}`;
   }
 
   // Helper functions
@@ -123,5 +127,17 @@ export class AuthService {
       access_token: accessToken,
       refresh_token: refreshToken,
     };
+  }
+
+  private async getGuestToken(guestId: string, eventId: string): Promise<GuestToken> {
+    const payload = { sub: guestId, event: eventId };
+    const accessToken = await this.jwtService.signAsync(payload, {
+      expiresIn: this.configService.get<string | number>(
+        'jwt.config.jwtGuestExpirationTime',
+      ),
+      secret: this.configService.get<string>('jwt.config.jwtGuestSecret'),
+    });
+
+    return { access_token: accessToken };
   }
 }

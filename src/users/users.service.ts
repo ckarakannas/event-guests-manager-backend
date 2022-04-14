@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeleteResult, Repository, UpdateQueryBuilder, UpdateResult } from 'typeorm';
+import {
+  DeleteResult,
+  Repository,
+  UpdateQueryBuilder,
+  UpdateResult,
+} from 'typeorm';
 import { UpdateUserDto } from './dto/update-user-dto';
 import { User } from './entities/user.entity';
 import { UserWhereConditions } from './types';
@@ -63,10 +68,10 @@ export class UsersService {
     whereConditions?: UserWhereConditions,
   ): Promise<UpdateResult> {
     const qb = this.updateUserBaseQuery(userId, dto);
-    
+
     if (whereConditions && whereConditions.length > 0) {
       whereConditions.forEach((c) =>
-        qb.andWhere(`${c.property} ${c.condition}`),
+        qb.andWhere(`${c.property} ${c.condition}`, [c.binding]),
       );
     }
     return await qb.execute();

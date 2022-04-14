@@ -49,7 +49,7 @@ export class Event {
   @Expose()
   organizer: User;
 
-  @Column({ nullable: true })
+  @Column()
   organizerId: string;
 
   @Expose()

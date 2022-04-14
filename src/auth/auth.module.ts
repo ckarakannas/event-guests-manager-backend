@@ -10,10 +10,13 @@ import { JwtModule } from '@nestjs/jwt';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { JwtRefreshStrategy } from './jwt-refresh.strategy';
+import { GuestsModule } from '../guests/guests.module';
+import { JwtGuestStrategy } from './jwt-guests.strategy';
 
 @Module({
   imports: [
     UsersModule,
+    GuestsModule,
     PassportModule,
     JwtModule.registerAsync({
       useFactory: (config: ConfigService) => {
@@ -35,6 +38,7 @@ import { JwtRefreshStrategy } from './jwt-refresh.strategy';
     LocalStrategy,
     JwtStrategy,
     JwtRefreshStrategy,
+    JwtGuestStrategy,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,

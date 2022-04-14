@@ -1,17 +1,34 @@
 import { Expose } from 'class-transformer';
 import { PaginationResult } from '../../pagination/paginator';
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  Unique,
+} from 'typeorm';
 import { Event } from '../../events/entities/event.entity';
 import { GuestRSVPEnum } from './guest-rsvp.enum';
 
 @Entity()
+@Unique(['eventId', 'firstName', 'lastName'])
 export class Guest {
   @PrimaryGeneratedColumn('uuid')
   @Expose()
   id: string;
 
   @Column()
-  name: string;
+  @Expose()
+  firstName: string;
+
+  @Column()
+  @Expose()
+  lastName: string;
+
+  @Column({ nullable: true })
+  @Expose()
+  email: string;
 
   @ManyToOne(() => Event, (event) => event.guests, {
     nullable: false,
@@ -21,9 +38,9 @@ export class Guest {
   event: Event;
 
   @Column()
-  eventId: number;
+  eventId: string;
 
-  @Column('enum', { enum: GuestRSVPEnum })
+  @Column('enum', { enum: GuestRSVPEnum, nullable: true })
   @Expose()
   rsvpStatus: GuestRSVPEnum;
 }
