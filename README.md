@@ -32,11 +32,36 @@
 $ npm install
 ```
 
+## Configuration
+
+The app expects two .env files, *development.env* and *production.env*  that reflect dev/local and prod environments respectfully.
+
+Example for local/dev config:
+
+| Syntax      |
+| ----------- |
+| NODE_ENV=development |
+| DB_HOST=127.0.0.1 |
+| DB_PORT=5432 |
+| DB_USER=postgres |
+| DB_PASSWORD=password |
+| DB_NAME=event-guests-manager |
+| DB_DROP_SCHEMA=0 |
+| DB_SYNCHRONIZE=1 |
+| JWT_AUTH_SECRET="your secret here" |
+| JWT_EXPIRATION_TIME="your expiration here" (15m default) | 
+| JWT_REFRESH_AUTH_SECRET="your secret here" |
+| JWT_REFRESH_EXPIRATION_TIME="your expiration here" (7days default) |
+| JWT_GUEST_AUTH_SECRET="your secret here" |
+| JWT_GUEST_EXPIRATION_TIME="your expiration here" (90days default) |
+
+
 ## Running the app
 
 ```bash
 # development
 $ npm run start
+$ docker-compose up # spin up Postgres DB
 
 # watch mode
 $ npm run start:dev
