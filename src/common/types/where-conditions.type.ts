@@ -5,7 +5,7 @@ export type GenericPropertyList<Type> = {
 export type GenericWhereCondition<T> = {
   property: keyof GenericPropertyList<T>;
   condition: string;
-  binding?: string
+  binding?: string;
 };
 
 export type WhereConditions<T> = GenericWhereCondition<T>[];

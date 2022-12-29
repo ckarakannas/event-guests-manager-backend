@@ -1,1 +1,1 @@
-export * from './where-conditions.type'
+export * from './where-conditions.type';

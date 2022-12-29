@@ -69,7 +69,7 @@ export class AuthService {
     return authRegister;
   }
 
-  async generateGuestMagicLink(dto: any): Promise<String> {
+  async generateGuestMagicLink(dto: any): Promise<string> {
     const token = await this.getGuestToken(dto.guestId, dto.eventId);
     return `/magic/rsvp?token=${token.access_token}`;
   }
@@ -129,7 +129,10 @@ export class AuthService {
     };
   }
 
-  private async getGuestToken(guestId: string, eventId: string): Promise<GuestToken> {
+  private async getGuestToken(
+    guestId: string,
+    eventId: string,
+  ): Promise<GuestToken> {
     const payload = { sub: guestId, event: eventId };
     const accessToken = await this.jwtService.signAsync(payload, {
       expiresIn: this.configService.get<string | number>(

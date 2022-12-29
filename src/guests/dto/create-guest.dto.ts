@@ -9,10 +9,10 @@ export class CreateGuestDto {
   @IsString()
   @IsNotEmpty()
   lastName: string;
-  
+
   @IsEmail()
   email?: string;
-      
+
   @IsEnum(GuestRSVPEnum)
   rsvpStatus?: GuestRSVPEnum;
 }
